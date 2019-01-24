@@ -1,6 +1,6 @@
 import {LitElement, html} from 'https://unpkg.com/lit-element/lit-element.js?module';
 
-import 'https://cdn.jsdelivr.net/gh/nandubatchu/lit-sink/test-element.js';
+import './test-element.js';
 
 class MyElement extends LitElement {
 
