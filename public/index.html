@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Lit-Sink</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="import" href="https://kcmr.github.io/resizable-panels/components/resizable-panels/resizable-panels.html"> 
 
     <!-- update the version number as needed -->
@@ -15,59 +16,13 @@
     <script defer src="/__/firebase/5.8.1/firebase-storage.js"></script>
     <!-- initialize the SDK after all desired features are loaded -->
     <script defer src="/__/firebase/init.js"></script>
-
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
-      /*  */
-      #heading {
-          margin: 10px;
-          font-size: larger;
-          font-weight: bolder;
-      }
-      resizable-panels {
-          --resizable-panels-knob-color: #000;
-      }
-      resizable-panels #code {
-          padding: 10px;
-          width: 65%;
-      }
-      resizable-panels #componentArea {
-          padding: 10px;
-          width: 35%;
-      }
-      resizable-panels[vertical] #componentInit {
-          padding: 10px;
-          height: 240px;
-      }
-      resizable-panels[vertical] #componentView {
-          display: grid;
-          height: 100%;
-          justify-items: center;
-          align-items: center;
-          padding: 10px;
-      }
-      #componentName {
-          font-weight: bold;
-          border: none;
-          font-size: medium;
-          text-align: right;
-          vertical-align: middle;
-      }
-    </style>
   </head>
   <body>
     <!-- Homepage View -->
-    <span id="heading">Lit-Sink</span>
+    <div id="header">
+        <span id="heading">Lit-Sink</span>
+        <button id="loginWithGithub">LogIn with GitHub</button>
+    </div>
     <resizable-panels id='codeArea'>
         <div id='code'></div>
         <resizable-panels vertical id="componentArea">
@@ -83,10 +38,12 @@
                     <button id='refreshElement'>Refresh Changes</button>
                     <button id='saveToCDN'>Save to CDN</button><br>
                     <textarea name="componentInitText" id="componentInitText" cols="60" rows="5"></textarea>
+                    <pre id="cdnLink" hidden></pre>
                 </div>
                 <div id='componentView'></div>
         </resizable-panels>
     </resizable-panels>
+    <span id="credits">made by <a href="https://twitter.com/nandubatchu">@nandubatchu</a></span>
 
     <!-- Scripts -->
     <script src="lib/codemirror.js"></script>
@@ -94,25 +51,5 @@
     <script src="mode/javascript/javascript.js"></script>
     <script src="script.js"></script>
     <script id="userScript" type='module'></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-
-        try {
-          let app = firebase.app();
-          let features = ['auth', 'database', 'messaging', 'storage'].filter(feature => typeof app[feature] === 'function');
-        } catch (e) {
-          console.error(e);
-        }
-      });
-    </script>
   </body>
 </html>

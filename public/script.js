@@ -5,9 +5,12 @@ let saveToCDN = document.getElementById('saveToCDN')
 let componentInitText = document.getElementById('componentInitText')
 let componentType = document.getElementById('componentType')
 let componentName = document.getElementById('componentName')
+let loginWithGithubButton = document.getElementById('loginWithGithub')
+let cdnLink = document.getElementById('cdnLink')
 
-const username = 'nandubatchu'
+let username = localStorage.getItem('username') ? localStorage.getItem('username') : 'anonymous'
 const PLACEHOLDERS = {
+    COMPONENT_NAME: 'pink-button',
     COMPONENT_INIT_TEXT: `<pink-button>My Pink Button</pink-button>`,
     CODE: `import {LitElement, html} from 'https://unpkg.com/lit-element/lit-element.js?module';
 
@@ -37,6 +40,7 @@ customElements.define('pink-button', PinkButtonElement);`
 
 old_session_code = localStorage.getItem("code") ? localStorage.getItem("code") : PLACEHOLDERS.CODE
 componentInitText.value = localStorage.getItem('componentInitText') ? localStorage.getItem("componentInitText") : PLACEHOLDERS.COMPONENT_INIT_TEXT
+componentName.value = localStorage.getItem('componentName') ? localStorage.getItem("componentName") : PLACEHOLDERS.COMPONENT_NAME
 
 var myCodeMirror = CodeMirror(document.getElementById("code"), {
     size: 100,
@@ -45,6 +49,7 @@ var myCodeMirror = CodeMirror(document.getElementById("code"), {
     lineNumbers: true,
     styleActiveLine: true,
     matchBrackets: true,
+    smartIndent: true,
     value:old_session_code ? old_session_code : ''
 });
 myCodeMirror.setSize('100%', '100%');
@@ -52,6 +57,7 @@ myCodeMirror.setSize('100%', '100%');
 window.onbeforeunload = function() {
     localStorage.setItem("code", myCodeMirror.getValue());
     localStorage.setItem("componentInitText", componentInitText.value);
+    localStorage.setItem("componentName", componentName.value);
 }
 
 let refreshElement = () => {
@@ -84,7 +90,7 @@ refreshEelementButton.addEventListener('click', () => {
 
 
 let hitFirebaseFunction = () => {
-    // console.log(`testing/${username}/${componentType.value}/${componentName.value}.js`)
+    console.log(`${username}/${componentType.value}/${componentName.value}.js`)
     payload = {
         "content": myCodeMirror.getValue(),
         "message": prompt('Tell something about this version update:'),
@@ -101,11 +107,71 @@ let hitFirebaseFunction = () => {
         .then(res => res.json())
         .then(res => {
             console.log(res.cdn_url)
-            alert(`
-            Your file is uploaded to CDN, add the following in <head> tag:
-            
-            <script src='${res.cdn_url}' type='module'></script>`)
+            cdnLink.innerHTML = res.cdn_url
+            cdnLink.hidden = false
+            alert(`Your file is uploaded to CDN, add the following in <head> tag:\n\n<script src='${res.cdn_url}' type='module'></script>`)
         })
 }
 
 saveToCDN.addEventListener('click', hitFirebaseFunction)
+
+// Authentication Flow
+let loginWithGithub = () => {
+    const provider = new firebase.auth.GithubAuthProvider();
+    provider.addScope('read:user');
+    console.log(provider)
+
+    firebase.auth().signInWithPopup(provider).then(function(result) {
+        // This gives you a GitHub Access Token. You can use it to access the GitHub API.
+        var token = result.credential.accessToken;
+        // The signed-in user info.
+        var user = result.user;
+        console.log("User Info:", user)
+        console.log("Additional User Info:", result.additionalUserInfo)
+        localStorage.setItem('username', result.additionalUserInfo.username)
+        console.log("OAuth response", result)
+        // ...
+    }).catch(function(error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        // The email of the user's account used.
+        var email = error.email;
+        // The firebase.auth.AuthCredential type that was used.
+        var credential = error.credential;
+        // ...
+    });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+    // // The Firebase SDK is initialized and available here!
+    //
+    // firebase.auth().onAuthStateChanged(user => { });
+    // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
+    // firebase.messaging().requestPermission().then(() => { });
+    // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
+    //
+    // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+
+    try {
+      let app = firebase.app();
+      let features = ['auth', 'database', 'messaging', 'storage'].filter(feature => typeof app[feature] === 'function');
+      firebase.auth().onAuthStateChanged(user => {
+          if (user) {
+            console.log("User logged in:", `${user.email} (${user.displayName})` )
+            loginWithGithubButton.hidden = true
+            username = localStorage.getItem('username')
+          } else {
+            console.log("User not logged in")
+            loginWithGithubButton.addEventListener('click', loginWithGithub)
+            loginWithGithubButton.hidden = false
+            localStorage.removeItem('username')
+            username = 'anonymous'
+          }
+      })
+      
+    } catch (e) {
+      console.error(e);
+    }
+  });
+

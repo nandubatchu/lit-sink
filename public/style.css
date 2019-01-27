@@ -1,0 +1,67 @@
+body { 
+    display: grid;
+    background: #fff; 
+    color: rgba(0,0,0,0.87); 
+    font-family: Roboto, Helvetica, Arial, sans-serif; 
+    margin: 0; 
+    padding: 0; 
+}
+
+/*  */
+#header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+#heading {
+    margin: 10px;
+    font-size: larger;
+    font-weight: bolder;
+}
+#loginWithGithub {
+    justify-self: end;
+    align-self: center;
+    margin: 10px;
+}
+resizable-panels {
+    --resizable-panels-knob-color: #000;
+}
+resizable-panels #code {
+    padding: 10px;
+    width: 65%;
+}
+resizable-panels #componentArea {
+    padding: 10px;
+    width: 35%;
+}
+resizable-panels[vertical] #componentInit {
+    padding: 10px;
+    height: 240px;
+}
+resizable-panels[vertical] #componentView {
+    display: grid;
+    height: 100%;
+    justify-items: center;
+    align-items: center;
+    padding: 10px;
+}
+#componentName {
+    font-weight: bold;
+    border: none;
+    font-size: medium;
+    text-align: right;
+    vertical-align: middle;
+}
+#componentName:focus {
+    outline: none;
+}
+#cdnLink {
+    overflow-x: scroll;
+}
+#cdnLink::-webkit-scrollbar {
+    width: 0px;
+}
+#credits {
+    text-align: right;
+    padding: 20px;
+    font-size: small;
+}

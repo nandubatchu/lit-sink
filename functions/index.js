@@ -3,7 +3,7 @@ const fs = require('fs')
 const App = require('@octokit/app')
 const request = require('@octokit/request')
 const cors = require('cors')({origin: true})
-const cert = functions.config() ? functions.config().testservice.key : fs.readFileSync(__dirname+'/../github_app.pem')
+const cert = functions.config().testservice != undefined ? functions.config().testservice.key : fs.readFileSync(__dirname+'/../github_app.pem')
 
 let owner = 'nandubatchu'
 let repo = 'lit-sink'
