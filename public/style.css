@@ -23,7 +23,7 @@ body {
     margin: 10px;
 }
 resizable-panels {
-    --resizable-panels-knob-color: #000;
+    --resizable-panels-knob-color: grey;
 }
 resizable-panels #code {
     padding: 10px;
@@ -32,16 +32,19 @@ resizable-panels #code {
 resizable-panels #componentArea {
     padding: 10px;
     width: 35%;
-}
-resizable-panels[vertical] #componentInit {
-    padding: 10px;
-    height: 240px;
-}
-resizable-panels[vertical] #componentView {
     display: grid;
-    height: 100%;
+    grid-template-rows: 1fr 3fr;
+}
+#componentInit {
+    padding: 10px;
+    border-bottom: 2px solid black;
+    overflow: hidden;
+}
+#componentView {
+    display:grid;
     justify-items: center;
     align-items: center;
+    height: 100%;
     padding: 10px;
 }
 #componentName {

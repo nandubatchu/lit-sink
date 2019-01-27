@@ -52,7 +52,7 @@ var myCodeMirror = CodeMirror(document.getElementById("code"), {
     smartIndent: true,
     value:old_session_code ? old_session_code : ''
 });
-myCodeMirror.setSize('100%', '100%');
+myCodeMirror.setSize('100%', '85vh');
 
 window.onbeforeunload = function() {
     localStorage.setItem("code", myCodeMirror.getValue());
@@ -109,7 +109,11 @@ let hitFirebaseFunction = () => {
             console.log(res.cdn_url)
             cdnLink.innerHTML = res.cdn_url
             cdnLink.hidden = false
-            alert(`Your file is uploaded to CDN, add the following in <head> tag:\n\n<script src='${res.cdn_url}' type='module'></script>`)
+            if (res.result == 'File already exists. Need to bump the version!') {
+                alert(`Your have a component of previous version registered already. Try bumping the version!\n\n<script src='${res.cdn_url}' type='module'></script>`)
+            } else {
+                alert(`Your file is uploaded to CDN, add the following in <head> tag:\n\n<script src='${res.cdn_url}' type='module'></script>`)
+            }
         })
 }
 
@@ -159,12 +163,13 @@ document.addEventListener('DOMContentLoaded', function() {
       firebase.auth().onAuthStateChanged(user => {
           if (user) {
             console.log("User logged in:", `${user.email} (${user.displayName})` )
-            loginWithGithubButton.hidden = true
+            loginWithGithubButton.innerText = user.email
+            loginWithGithubButton.removeEventListener('click', loginWithGithub)
             username = localStorage.getItem('username')
           } else {
             console.log("User not logged in")
+            loginWithGithubButton.innerText = "Login with Github"
             loginWithGithubButton.addEventListener('click', loginWithGithub)
-            loginWithGithubButton.hidden = false
             localStorage.removeItem('username')
             username = 'anonymous'
           }
