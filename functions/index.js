@@ -171,7 +171,7 @@ exports.saveFileToCDN = functions.https.onRequest((request, response) => {
     cors(request, response, () => {
         let contentString = request.body.content
         let commitMessage = request.body.message
-        let filePath = request.body.path
+        let filePath = 'components/beta/' + request.body.path
         let userData = {
             name: "Yadunandan",
             email: "nandubatchu@gmail.com"

@@ -88,7 +88,7 @@ let hitFirebaseFunction = () => {
     payload = {
         "content": myCodeMirror.getValue(),
         "message": prompt('Tell something about this version update:'),
-        "path": `components/beta/${username}/${componentType.value}/${componentName.value}.js`
+        "path": `${username}/${componentType.value}/${componentName.value}.js`
     }
     return fetch("/saveFileToCDN", {
         method: "POST",
