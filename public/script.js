@@ -66,7 +66,6 @@ let refreshElement = () => {
     dupScript.setAttribute('type', 'module')
     dupScript.setAttribute('id', 'userScript')
     dupScript.textContent = myCodeMirror.getValue();
-    console.log(dupScript)
     document.body.replaceChild(dupScript, userScript)
 }
 myCodeMirror.on('changes', () => {
@@ -89,17 +88,23 @@ refreshEelementButton.addEventListener('click', () => {
 })
 
 
-let hitFirebaseFunction = () => {
-    console.log(`${username}/${componentType.value}/${componentName.value}.js`)
+let hitFirebaseFunction = async () => {
+    if (username == 'anonymous') {
+        return alert("Please login")
+    }
     payload = {
+        "token": localStorage.getItem('access_token'),
         "content": myCodeMirror.getValue(),
         "message": prompt('Tell something about this version update:'),
-        "path": `${username}/${componentType.value}/${componentName.value}.js`
+        "filename": `${componentName.value}.js`,
+        "version": 0
     }
+    idToken = await firebase.auth().currentUser.getIdToken()
     return fetch("/saveFileToCDN", {
         method: "POST",
         // mode: "cors",
         headers: {
+            "Authorization": `Bearer ${idToken}`,
             "Content-Type": "application/json",
         },
         body: JSON.stringify(payload)
@@ -107,11 +112,11 @@ let hitFirebaseFunction = () => {
         .then(res => res.json())
         .then(res => {
             console.log(res.cdn_url)
-            cdnLink.innerHTML = res.cdn_url
-            cdnLink.hidden = false
             if (res.result == 'File already exists. Need to bump the version!') {
-                alert(`Your have a component of previous version registered already. Try bumping the version!\n\n<script src='${res.cdn_url}' type='module'></script>`)
+                alert(`Your have a component of previous version registered already. Try bumping the version!`)
             } else {
+                cdnLink.innerHTML = `<a href=${res.cdn_url}>${res.cdn_url}</a>`
+                cdnLink.hidden = false
                 alert(`Your file is uploaded to CDN, add the following in <head> tag:\n\n<script src='${res.cdn_url}' type='module'></script>`)
             }
         })
@@ -123,11 +128,11 @@ saveToCDN.addEventListener('click', hitFirebaseFunction)
 let loginWithGithub = () => {
     const provider = new firebase.auth.GithubAuthProvider();
     provider.addScope('read:user');
-    console.log(provider)
 
     firebase.auth().signInWithPopup(provider).then(function(result) {
         // This gives you a GitHub Access Token. You can use it to access the GitHub API.
         var token = result.credential.accessToken;
+        localStorage.setItem('access_token', token)
         // The signed-in user info.
         var user = result.user;
         console.log("User Info:", user)
@@ -171,6 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loginWithGithubButton.innerText = "Login with Github"
             loginWithGithubButton.addEventListener('click', loginWithGithub)
             localStorage.removeItem('username')
+            localStorage.removeItem('access_token')
             username = 'anonymous'
           }
       })
