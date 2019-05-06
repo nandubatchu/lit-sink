@@ -6,7 +6,8 @@ let createProject = document.getElementById('createProject')
 let projectList = document.getElementById('projectList')
 let componentInitText = document.getElementById('componentInitText')
 let projectVersion = document.getElementById('projectVersion')
-let componentName = document.getElementById('componentName')
+let projectNameSelection = document.getElementById('projectName')
+let componentNameSelection = document.getElementById('componentName')
 let loginWithGithubButton = document.getElementById('loginWithGithub')
 let cdnLink = document.getElementById('cdnLink')
 
@@ -43,7 +44,7 @@ customElements.define('pink-button', PinkButtonElement);`
 
 old_session_code = localStorage.getItem("code") ? localStorage.getItem("code") : PLACEHOLDERS.CODE
 componentInitText.value = localStorage.getItem('componentInitText') ? localStorage.getItem("componentInitText") : PLACEHOLDERS.COMPONENT_INIT_TEXT
-componentName.value = localStorage.getItem('componentName') ? localStorage.getItem("componentName") : PLACEHOLDERS.COMPONENT_NAME
+componentNameSelection.value = localStorage.getItem('componentName') ? localStorage.getItem("componentName") : PLACEHOLDERS.COMPONENT_NAME
 projectVersion.innerHTML = `${JSON.parse(localStorage.getItem('projectsData'))[localStorage.getItem('projectName')]['versions'].reverse().map(versionString => `<option value="${versionString}">${versionString}</option>`.split(',').join('')).join('')}`
 
 var myCodeMirror = CodeMirror(document.getElementById("code"), {
@@ -61,7 +62,7 @@ myCodeMirror.setSize('100%', '85vh');
 window.onbeforeunload = function() {
     localStorage.setItem("code", myCodeMirror.getValue());
     localStorage.setItem("componentInitText", componentInitText.value);
-    localStorage.setItem("componentName", componentName.value);
+    localStorage.setItem("componentName", componentNameSelection.value);
 }
 
 let refreshElement = () => {
@@ -117,8 +118,14 @@ let getProjectList = async () => {
                     </div>
                 `.split(',').join('')).join('')}
             `
+            projectsSelectString = `
+                ${Object.keys(projects).map(projectName => `
+                    <option id=${projectName}>${projectName}</option>
+                `)}
+            `
             console.log(htmlString)
             projectList.innerHTML = htmlString
+            projectNameSelection.innerHTML = projectsSelectString
             document.querySelectorAll('.projectName').forEach(p => p.addEventListener('click', a => {
                 console.log(a.target.id)
                 console.log(projects[a.target.id.split('project-')[1]])
@@ -127,15 +134,28 @@ let getProjectList = async () => {
                 `
                 localStorage.setItem('projectName', a.target.firstElementChild.innerText)
             }))
-            document.querySelectorAll('.componentName').forEach(p => p.addEventListener('click', a => {
-                console.log(a.target.innerText)
-                hitGetFileContent(a.target.innerText)
-            }))
+            // document.querySelectorAll('.componentName').forEach(p => p.addEventListener('click', a => {
+            //     console.log(a.target.innerText)
+            //     hitGetFileContent(a.target.innerText)
+            // }))
         })
         .catch(function(error) {
             console.log("Error getting documents: ", error);
         });
     
+}
+
+let getComponentList = () => {
+    let project = projectNameSelection.value
+    localStorage.setItem("projectName", project);
+    let componentList = JSON.parse(localStorage.getItem('projectsData'))[project]['components']
+    let componentSelectString = `
+        ${componentList.map(componentFile => {
+            let component = componentFile.slice(0, -3)
+            return `<option class="componentOption" value=${component}>${component}</option>`}
+        )}
+    `
+    componentNameSelection.innerHTML = componentSelectString
 }
 
 let createProjectDocument = (projectName) => {
@@ -233,8 +253,12 @@ let hitCreateProject = async () => {
         })
 }
 
-let hitGetFileContent = async (filename, projectVersion = null) => {
-    let projectName = localStorage.getItem('projectName')
+let hitGetFileContent = async () => {
+    projectVersion = null
+    let projectName = projectNameSelection.value
+    let component = componentNameSelection.value
+    let filename = component + ".js"
+
     console.log("getFileContent")
     if (!isLoggedIn) {
         return alert("Please login")
@@ -267,6 +291,9 @@ let hitGetFileContent = async (filename, projectVersion = null) => {
         })
 }
 
+projectNameSelection.onchange = getComponentList
+componentNameSelection.onchange = hitGetFileContent
+componentNameSelection.onclick = hitGetFileContent
 publishButton.addEventListener('click', hitSaveFileToCDN)
 createProject.addEventListener('click', hitCreateProject)
 
