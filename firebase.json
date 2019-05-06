@@ -17,6 +17,14 @@
       {
         "source": "/saveFileToCDN",
         "function": "saveFileToCDN"
+      },
+      {
+        "source": "/createProject",
+        "function": "createProject"
+      },
+      {
+        "source": "/getFileContent",
+        "function": "getFileContent"
       }
     ]
   }

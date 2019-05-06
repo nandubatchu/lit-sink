@@ -2,12 +2,15 @@ let cm = document.getElementById('code')
 let componentView = document.getElementById('componentView')
 let refreshEelementButton = document.getElementById('refreshElement')
 let saveToCDN = document.getElementById('saveToCDN')
+let createProject = document.getElementById('createProject')
+let projectList = document.getElementById('projectList')
 let componentInitText = document.getElementById('componentInitText')
-let componentType = document.getElementById('componentType')
+let projectVersion = document.getElementById('projectVersion')
 let componentName = document.getElementById('componentName')
 let loginWithGithubButton = document.getElementById('loginWithGithub')
 let cdnLink = document.getElementById('cdnLink')
 
+let auth, db
 let username = localStorage.getItem('username') ? localStorage.getItem('username') : 'anonymous'
 const PLACEHOLDERS = {
     COMPONENT_NAME: 'pink-button',
@@ -41,6 +44,7 @@ customElements.define('pink-button', PinkButtonElement);`
 old_session_code = localStorage.getItem("code") ? localStorage.getItem("code") : PLACEHOLDERS.CODE
 componentInitText.value = localStorage.getItem('componentInitText') ? localStorage.getItem("componentInitText") : PLACEHOLDERS.COMPONENT_INIT_TEXT
 componentName.value = localStorage.getItem('componentName') ? localStorage.getItem("componentName") : PLACEHOLDERS.COMPONENT_NAME
+projectVersion.innerHTML = `${JSON.parse(localStorage.getItem('projectsData'))[localStorage.getItem('projectName')]['versions'].reverse().map(versionString => `<option value="${versionString}">${versionString}</option>`.split(',').join('')).join('')}`
 
 var myCodeMirror = CodeMirror(document.getElementById("code"), {
     size: 100,
@@ -87,17 +91,88 @@ refreshEelementButton.addEventListener('click', () => {
     window.location.reload()
 })
 
-
-let hitFirebaseFunction = async () => {
+let isLoggedIn = () => {
     if (username == 'anonymous') {
+        return False
+    } else {
+        return True
+    }
+}
+
+let getProjectList = async () => {
+    let projects = {}
+    return await db.collection("projects").where("owner", "==", auth.currentUser.uid).get()
+        .then((querySnapshot) => {
+            querySnapshot.forEach(function(doc) {
+                // doc.data() is never undefined for query doc snapshots
+                console.log(doc.id, " => ", doc.data());
+                projects[doc.id] = doc.data()
+            })
+            localStorage.setItem("projectsData", JSON.stringify(projects))
+            htmlString = `
+                ${Object.keys(projects).map(projectName => `
+                    <div class="projectName" id="project-${projectName}">
+                        <span>${projectName}</span>
+                        ${projects[projectName]['components'].map(component => `<li class="componentName" id="component-${component}">${component}</li>`)}
+                    </div>
+                `.split(',').join('')).join('')}
+            `
+            console.log(htmlString)
+            projectList.innerHTML = htmlString
+            document.querySelectorAll('.projectName').forEach(p => p.addEventListener('click', a => {
+                console.log(a.target.id)
+                console.log(projects[a.target.id.split('project-')[1]])
+                projectVersion.innerHTML = `
+                    ${projects[a.target.id.split('project-')[1]]['versions'].reverse().map(versionString => `<option value="${versionString}">${versionString}</option>`.split(',').join('')).join('')}
+                `
+                localStorage.setItem('projectName', a.target.firstElementChild.innerText)
+            }))
+            document.querySelectorAll('.componentName').forEach(p => p.addEventListener('click', a => {
+                console.log(a.target.innerText)
+                hitGetFileContent(a.target.innerText)
+            }))
+        })
+        .catch(function(error) {
+            console.log("Error getting documents: ", error);
+        });
+    
+}
+
+let createProjectDocument = (projectName) => {
+    db.collection("projects").doc(projectName).set({
+        owner: auth.currentUser.uid,
+        components: [],
+        versions: ["0.0.0"],
+        gh_path: `https://github.com/lit-sink/${projectName}`
+    })
+    .then(function() {
+        console.log(`Document written with ID: ${projectName}`);
+    })
+    .catch(function(error) {
+        console.error("Error adding document: ", error);
+    });
+}
+
+let bump_version = (lastVersion) => {
+    vInfo = lastVersion.split(".")
+    vInfo[2] = (parseInt(vInfo[2]) + 1).toString()
+    return vInfo.join(".")
+}
+
+let hitSaveFileToCDN = async () => {
+    if (!isLoggedIn) {
         return alert("Please login")
     }
+
+    projectName = localStorage.getItem('projectName')
+    lastVersion = JSON.parse(localStorage.getItem('projectsData'))[projectName]['versions'].reverse()[0]
     payload = {
         "token": localStorage.getItem('access_token'),
         "content": myCodeMirror.getValue(),
         "message": prompt('Tell something about this version update:'),
+        "projectName": projectName,
         "filename": `${componentName.value}.js`,
-        "version": 0
+        "version": prompt("Any specific version release?", bump_version(lastVersion))
     }
     idToken = await firebase.auth().currentUser.getIdToken()
     return fetch("/saveFileToCDN", {
@@ -118,11 +193,83 @@ let hitFirebaseFunction = async () => {
                 cdnLink.innerHTML = `<a href=${res.cdn_url}>${res.cdn_url}</a>`
                 cdnLink.hidden = false
                 alert(`Your file is uploaded to CDN, add the following in <head> tag:\n\n<script src='${res.cdn_url}' type='module'></script>`)
+                window.location.reload()
             }
         })
 }
 
-saveToCDN.addEventListener('click', hitFirebaseFunction)
+let hitCreateProject = async () => {
+    let projectName = prompt("Enter project name:")
+    console.log("createProject")
+    if (!isLoggedIn) {
+        return alert("Please login")
+    }
+
+    payload = {
+        "token": localStorage.getItem('access_token'),
+        "projectName": projectName
+    }
+
+    idToken = await firebase.auth().currentUser.getIdToken()
+    return fetch("/createProject", {
+        method: "POST",
+        // mode: "cors",
+        headers: {
+            "Authorization": `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload)
+    })
+        .then(res => res.json())
+        .then(res => {
+            console.log(res)
+            if (res.result == "success") {
+                createProjectDocument(projectName)
+                localStorage.setItem('projectName', projectName)
+                alert("Successfully created the project")
+            } else {
+                alert(res.result)
+            }
+        })
+}
+
+let hitGetFileContent = async (filename, projectVersion = null) => {
+    let projectName = localStorage.getItem('projectName')
+    console.log("getFileContent")
+    if (!isLoggedIn) {
+        return alert("Please login")
+    }
+
+    payload = {
+        "token": localStorage.getItem('access_token'),
+        "filename": filename,
+        "projectName": projectName,
+        "version": projectVersion ? projectVersion : undefined
+    }
+    idToken = await firebase.auth().currentUser.getIdToken()
+    return fetch("/getFileContent", {
+        method: "POST",
+        // mode: "cors",
+        headers: {
+            "Authorization": `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload)
+    })
+        .then(res => res.json())
+        .then(res => {
+            console.log(res)
+            if (res.result == "success") {
+                myCodeMirror.setValue(atob(res.content))
+            } else {
+                alert(res.result)
+            }
+        })
+}
+
+saveToCDN.addEventListener('click', hitSaveFileToCDN)
+createProject.addEventListener('click', hitCreateProject)
+
 
 // Authentication Flow
 let loginWithGithub = () => {
@@ -163,24 +310,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 
     try {
-      let app = firebase.app();
-      let features = ['auth', 'database', 'messaging', 'storage'].filter(feature => typeof app[feature] === 'function');
-      firebase.auth().onAuthStateChanged(user => {
-          if (user) {
-            console.log("User logged in:", `${user.email} (${user.displayName})` )
-            loginWithGithubButton.innerText = user.email
-            loginWithGithubButton.removeEventListener('click', loginWithGithub)
-            username = localStorage.getItem('username')
-          } else {
-            console.log("User not logged in")
-            loginWithGithubButton.innerText = "Login with Github"
-            loginWithGithubButton.addEventListener('click', loginWithGithub)
-            localStorage.removeItem('username')
-            localStorage.removeItem('access_token')
-            username = 'anonymous'
-          }
-      })
-      
+        let app = firebase.app();
+        auth = firebase.auth();
+        db = firebase.firestore();
+        
+        let features = ['auth', 'database', 'messaging', 'storage'].filter(feature => typeof app[feature] === 'function');
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                console.log("User logged in:", `${user.email} (${user.displayName})` )
+                loginWithGithubButton.innerText = user.email
+                loginWithGithubButton.removeEventListener('click', loginWithGithub)
+                username = localStorage.getItem('username')
+
+                getProjectList()
+            } else {
+                console.log("User not logged in")
+                loginWithGithubButton.innerText = "Login with Github"
+                loginWithGithubButton.addEventListener('click', loginWithGithub)
+                localStorage.removeItem('username')
+                localStorage.removeItem('access_token')
+                username = 'anonymous'
+            }
+        })
+  
     } catch (e) {
       console.error(e);
     }

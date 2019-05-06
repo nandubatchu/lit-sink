@@ -18,34 +18,57 @@ body {
     font-weight: bolder;
 }
 #loginWithGithub {
-    justify-self: end;
-    align-self: center;
-    margin: 10px;
+    background: darkgoldenrod;
+    display: grid;
+    align-items: center;
+    height: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+#contentContainer {
+    display: grid;
+    grid-template-columns: 1fr 6fr;
+}
+#sidebar {
+    /*  */
+}
+#createProject {
+    height: 30px;
+}
+#projectList {
+    display: grid;
+    align-content: stretch;
 }
 resizable-panels {
     --resizable-panels-knob-color: grey;
 }
 resizable-panels #code {
     padding: 10px;
-    width: 65%;
+    width: 60%;
 }
 resizable-panels #componentArea {
     padding: 10px;
-    width: 35%;
+    width: 40%;
     display: grid;
     grid-template-rows: 1fr 3fr;
+    
 }
-#componentInit {
-    padding: 10px;
+#componentInitContainer {
+    display: grid;
     border-bottom: 2px solid black;
     overflow: hidden;
+
+}
+#componentInit {
+    justify-self: end;
+    padding: 10px;
 }
 #componentView {
     display:grid;
     justify-items: center;
     align-items: center;
     height: 100%;
-    padding: 10px;
+    overflow: scroll;
 }
 #componentName {
     font-weight: bold;

@@ -12,39 +12,46 @@
     <!-- include only the Firebase features as you need -->
     <script defer src="/__/firebase/5.8.1/firebase-auth.js"></script>
     <script defer src="/__/firebase/5.8.1/firebase-database.js"></script>
+    <script defer src="/__/firebase/5.8.1/firebase-firestore.js"></script>
     <script defer src="/__/firebase/5.8.1/firebase-messaging.js"></script>
     <script defer src="/__/firebase/5.8.1/firebase-storage.js"></script>
     <!-- initialize the SDK after all desired features are loaded -->
     <script defer src="/__/firebase/init.js"></script>
+    <script src="components.js" type="module"></script>
   </head>
   <body>
     <!-- Homepage View -->
-    <div id="header">
-        <span id="heading">Lit-Sink</span>
-        <button id="loginWithGithub">LogIn with GitHub</button>
-    </div>
-    <resizable-panels id='codeArea'>
-        <div id='code'></div>
-        <div id="componentArea">
-                <div id='componentInit'>
-                    <select name="componentType" id="componentType">
-                        <option value="basic">Basic Block Component</option>
-                        <option value="small">Small Functional Component</option>
-                        <option value="high">High level Component</option>
-                        <option value="complex">Complex Component</option>
-                    </select>
-                    <input id="componentName" value="test-element">
-                    <br><br>
-                    <button id='refreshElement'>Refresh Changes</button>
-                    <button id='saveToCDN'>Save to CDN</button><br>
-                    <textarea name="componentInitText" id="componentInitText" cols="60" rows="5"></textarea>
-                    <pre id="cdnLink" hidden></pre>
-                </div>
-                <div id='componentView'></div>
+    <lit-sink-header title="Lit-Sink">
+        <div id="loginWithGithub">LogIn with GitHub</div>
+    </lit-sink-header>
+    <div id="contentContainer">
+        <div id="sidebar">
+            <button id='createProject'>Create Project</button>
+            <div id="projectList"></div>
         </div>
-    </resizable-panels>
-    <span id="credits">made by <a href="https://twitter.com/nandubatchu">@nandubatchu</a></span>
-
+        <resizable-panels id='codeArea'>
+            <div id='code'></div>
+            <div id="componentArea">
+                    <div id="componentInitContainer">
+                        <div id='componentInit'>
+                            <select name="projectVersion" id="projectVersion">
+                                <option value="0.0.0">0.0.0</option>
+                            </select>
+                            <input id="componentName" value="test-element">
+                            <br><br>
+                            <button id='refreshElement'>Refresh Changes</button>
+                            
+                            <button id='saveToCDN'>Save to CDN</button><br>
+                            <textarea name="componentInitText" id="componentInitText" cols="60" rows="5"></textarea>
+                            <pre id="cdnLink" hidden></pre>
+                        </div>
+                    </div>
+                    <div id='componentView'></div>
+            </div>
+        </resizable-panels>
+    </div>
+    
+    <lit-sink-footer></lit-sink-footer>
     <!-- Scripts -->
     <script src="lib/codemirror.js"></script>
     <link rel="stylesheet" href="lib/codemirror.css">
