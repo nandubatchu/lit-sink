@@ -23,17 +23,18 @@ let call_org_installation_data = (app, jwt) => {
     }).then(res => res.data)
 }
 
-let call_get_contents = (installationAccessToken, projectName, filename, version) => {
-    return request('GET /repos/:owner/:repo/contents/:path', {
+let call_get_contents = (installationAccessToken, projectName, filename, version = undefined) => {
+    let payload = {
         owner: org,
         repo: projectName,
         path: filename,
-        ...(version && {ref: version}),
         headers: {
             authorization: `token ${installationAccessToken}`,
             accept: 'application/vnd.github.machine-man-preview+json'
         }
-    }).then(res => res.data)
+    }
+    Object.assign(payload, version ? {ref: version} : null)
+    return request('GET /repos/:owner/:repo/contents/:path', payload).then(res => res.data)
 }
 
 let saveFileToRepo = (contentString, commitMessage, projectName, filename, version, userData) => {
