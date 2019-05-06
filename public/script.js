@@ -1,7 +1,7 @@
 let cm = document.getElementById('code')
 let componentView = document.getElementById('componentView')
 let refreshEelementButton = document.getElementById('refreshElement')
-let saveToCDN = document.getElementById('saveToCDN')
+let publishButton = document.getElementById('publish')
 let createProject = document.getElementById('createProject')
 let projectList = document.getElementById('projectList')
 let componentInitText = document.getElementById('componentInitText')
@@ -113,7 +113,7 @@ let getProjectList = async () => {
                 ${Object.keys(projects).map(projectName => `
                     <div class="projectName" id="project-${projectName}">
                         <span>${projectName}</span>
-                        ${projects[projectName]['components'].map(component => `<li class="componentName" id="component-${component}">${component}</li>`)}
+                        ${projects[projectName]['components'].map(component => `<li class="componentName" id="component-${component}"><a href="#">${component}</a></li>`)}
                     </div>
                 `.split(',').join('')).join('')}
             `
@@ -267,7 +267,7 @@ let hitGetFileContent = async (filename, projectVersion = null) => {
         })
 }
 
-saveToCDN.addEventListener('click', hitSaveFileToCDN)
+publishButton.addEventListener('click', hitSaveFileToCDN)
 createProject.addEventListener('click', hitCreateProject)
 
 

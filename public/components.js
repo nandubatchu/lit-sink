@@ -2,3 +2,4 @@
 // import 'https://cdn.jsdelivr.net/gh/nandubatchu/lit-sink@4c690a7/components/beta/nandubatchu/1/lit-sink-header.js'
 import 'https://cdn.jsdelivr.net/gh/nandubatchu/lit-sink@e7cfd4f/components/beta/nandubatchu/2/lit-sink-header.js'
 import 'https://cdn.jsdelivr.net/gh/nandubatchu/lit-sink@acccd0c/components/beta/nandubatchu/0/lit-sink-footer.js'
+import 'https://cdn.jsdelivr.net/gh/lit-sink/components@0.0.2/my-loader.js'
