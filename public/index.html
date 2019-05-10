@@ -25,10 +25,6 @@
         <div id="loginWithGithub">LogIn with GitHub</div>
     </lit-sink-header>
     <div id="contentContainer">
-        <div id="sidebar">
-            <button id='createProject'>Create Project</button>
-            <div id="projectList"></div>
-        </div>
         <resizable-panels id='codeArea'>
             <div id='code'></div>
             <div id="componentArea">
@@ -41,12 +37,11 @@
                             </select>
                             <select name="componentName" id="componentName">
                             </select>
+                            <button id='publish'>Publish</button><br>
                             <!-- <input id="componentName" value="test-element"> -->
                             <br><br>
-                            <button id='refreshElement'>Refresh Changes</button>
-                            
-                            <button id='publish'>Publish</button><br>
                             <textarea name="componentInitText" id="componentInitText" cols="60" rows="5"></textarea>
+                            <button id='refreshElement'>Refresh Changes</button>
                             <pre id="cdnLink" hidden></pre>
                         </div>
                     </div>

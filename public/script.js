@@ -2,8 +2,6 @@ let cm = document.getElementById('code')
 let componentView = document.getElementById('componentView')
 let refreshEelementButton = document.getElementById('refreshElement')
 let publishButton = document.getElementById('publish')
-let createProject = document.getElementById('createProject')
-let projectList = document.getElementById('projectList')
 let componentInitText = document.getElementById('componentInitText')
 let projectVersion = document.getElementById('projectVersion')
 let projectNameSelection = document.getElementById('projectName')
@@ -124,7 +122,6 @@ let getProjectList = async () => {
                 `)}
             `
             console.log(htmlString)
-            projectList.innerHTML = htmlString
             projectNameSelection.innerHTML = projectsSelectString
             document.querySelectorAll('.projectName').forEach(p => p.addEventListener('click', a => {
                 console.log(a.target.id)
@@ -295,7 +292,6 @@ projectNameSelection.onchange = getComponentList
 componentNameSelection.onchange = hitGetFileContent
 componentNameSelection.onclick = hitGetFileContent
 publishButton.addEventListener('click', hitSaveFileToCDN)
-createProject.addEventListener('click', hitCreateProject)
 
 
 // Authentication Flow

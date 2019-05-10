@@ -27,7 +27,6 @@ body {
 }
 #contentContainer {
     display: grid;
-    grid-template-columns: 1fr 6fr;
 }
 #sidebar {
     /*  */
@@ -44,11 +43,11 @@ resizable-panels {
 }
 resizable-panels #code {
     padding: 10px;
-    width: 60%;
+    width: 70%;
 }
 resizable-panels #componentArea {
     padding: 10px;
-    width: 40%;
+    width: 30%;
     display: grid;
     grid-template-rows: 1fr 3fr;
     
