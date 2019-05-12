@@ -271,7 +271,6 @@ let hitCreateProject = async () => {
 }
 
 let hitGetFileContent = async () => {
-    projectVersion = null
     let projectName = projectNameSelection.value
     let component = componentNameSelection.value
     let filename = component + ".js"
@@ -285,7 +284,7 @@ let hitGetFileContent = async () => {
         "token": localStorage.getItem('access_token'),
         "filename": filename,
         "projectName": projectName,
-        "version": projectVersion ? projectVersion : undefined
+        "version": projectVersion.value
     }
     idToken = await firebase.auth().currentUser.getIdToken()
     return fetch("/getFileContent", {
