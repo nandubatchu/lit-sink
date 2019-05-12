@@ -1,7 +1,10 @@
 let cm = document.getElementById('code')
 let componentView = document.getElementById('componentView')
 let refreshEelementButton = document.getElementById('refreshElement')
+let copyLinkButton = document.getElementById('copyLink')
 let publishButton = document.getElementById('publish')
+let newProjectButton = document.getElementById('newProject')
+let newComponentButton = document.getElementById('newComponent')
 let componentInitText = document.getElementById('componentInitText')
 let projectVersion = document.getElementById('projectVersion')
 let projectNameSelection = document.getElementById('projectName')
@@ -12,6 +15,7 @@ let cdnLink = document.getElementById('cdnLink')
 let auth, db
 let username = localStorage.getItem('username') ? localStorage.getItem('username') : 'anonymous'
 const PLACEHOLDERS = {
+    PROJECT_NAME: `${username}_components`,
     COMPONENT_NAME: 'pink-button',
     COMPONENT_INIT_TEXT: `<pink-button>My Pink Button</pink-button>`,
     CODE: `import {LitElement, html} from 'https://unpkg.com/lit-element/lit-element.js?module';
@@ -40,10 +44,82 @@ class PinkButtonElement extends LitElement {
 customElements.define('pink-button', PinkButtonElement);`
 }
 
+let fetchProjectsData = async () => {
+    let projects = {}
+    return await db.collection("projects").where("owner", "==", auth.currentUser.uid).get()
+        .then((querySnapshot) => {
+            querySnapshot.forEach(function(doc) {
+                // doc.data() is never undefined for query doc snapshots
+                // console.log(doc.id, " => ", doc.data());
+                projects[doc.id] = doc.data()
+            })
+            projectDataString = JSON.stringify(projects)
+            if (localStorage.getItem("projectsData") == projectDataString) {
+                console.log("No change in the projectsData!")
+            } else {
+                localStorage.setItem("projectsData", projectDataString)
+                window.location.reload()
+            }
+        })
+        .catch(function(error) {
+            console.log("Error getting documents: ", error);
+        });
+    
+}
+
+let getProjectList = () => {
+    let projects = JSON.parse(localStorage.getItem("projectsData"))
+    projectsSelectString = `
+        ${Object.keys(projects).map(projectName => `
+            <option id=${projectName} value=${projectName}>${projectName}</option>
+        `)}
+    `
+    projectNameSelection.innerHTML = projectsSelectString
+    projectNameSelection.value = localStorage.getItem("projectName") ? localStorage.getItem("projectName") : PLACEHOLDERS.PROJECT_NAME
+}
+
+let getVersionList = () => {
+    let projects = JSON.parse(localStorage.getItem('projectsData'))
+    let project = localStorage.getItem("projectName")
+    projectVersion.innerHTML = `
+        ${projects[project]['versions'].reverse().map(versionString => `
+            <option value="${versionString}">${versionString}</option>
+        `.split(',').join('')).join('')}
+    `
+}
+
+let getComponentList = () => {
+    let project = localStorage.getItem("projectName")
+    let componentList = JSON.parse(localStorage.getItem('projectsData'))[project]['components']
+    let componentSelectString = `
+        ${componentList.map(componentFile => {
+            let component = componentFile.slice(0, -3)
+            return `<option class="componentOption" value=${component}>${component}</option>`}
+        )}
+    `
+    componentNameSelection.innerHTML = componentSelectString
+    componentNameSelection.value = localStorage.getItem('componentName') ? localStorage.getItem("componentName") : PLACEHOLDERS.COMPONENT_NAME
+}
+
+let constructCDNLink = () => {
+    let projectsData = JSON.parse(localStorage.getItem("projectsData"))
+    let project = localStorage.getItem("projectName")
+    let component = localStorage.getItem("componentName")
+
+    let projectVersions = projectsData[project]['versions']
+    let version = projectVersions.reverse()[0]
+    cdn_url = `https://cdn.jsdelivr.net/gh/lit-sink/${project}@${version}/${component}.js`
+    return cdn_url
+}
+
+
+// Initialising the placeholders
 old_session_code = localStorage.getItem("code") ? localStorage.getItem("code") : PLACEHOLDERS.CODE
 componentInitText.value = localStorage.getItem('componentInitText') ? localStorage.getItem("componentInitText") : PLACEHOLDERS.COMPONENT_INIT_TEXT
-componentNameSelection.value = localStorage.getItem('componentName') ? localStorage.getItem("componentName") : PLACEHOLDERS.COMPONENT_NAME
-projectVersion.innerHTML = `${JSON.parse(localStorage.getItem('projectsData'))[localStorage.getItem('projectName')]['versions'].reverse().map(versionString => `<option value="${versionString}">${versionString}</option>`.split(',').join('')).join('')}`
+getProjectList()
+getVersionList()
+getComponentList()
+
 
 var myCodeMirror = CodeMirror(document.getElementById("code"), {
     size: 100,
@@ -61,6 +137,7 @@ window.onbeforeunload = function() {
     localStorage.setItem("code", myCodeMirror.getValue());
     localStorage.setItem("componentInitText", componentInitText.value);
     localStorage.setItem("componentName", componentNameSelection.value);
+    if (componentNameSelection.value == "") {return "Component data not saved!"}
 }
 
 let refreshElement = () => {
@@ -98,63 +175,6 @@ let isLoggedIn = () => {
     }
 }
 
-let getProjectList = async () => {
-    let projects = {}
-    return await db.collection("projects").where("owner", "==", auth.currentUser.uid).get()
-        .then((querySnapshot) => {
-            querySnapshot.forEach(function(doc) {
-                // doc.data() is never undefined for query doc snapshots
-                console.log(doc.id, " => ", doc.data());
-                projects[doc.id] = doc.data()
-            })
-            localStorage.setItem("projectsData", JSON.stringify(projects))
-            htmlString = `
-                ${Object.keys(projects).map(projectName => `
-                    <div class="projectName" id="project-${projectName}">
-                        <span>${projectName}</span>
-                        ${projects[projectName]['components'].map(component => `<li class="componentName" id="component-${component}"><a href="#">${component}</a></li>`)}
-                    </div>
-                `.split(',').join('')).join('')}
-            `
-            projectsSelectString = `
-                ${Object.keys(projects).map(projectName => `
-                    <option id=${projectName}>${projectName}</option>
-                `)}
-            `
-            console.log(htmlString)
-            projectNameSelection.innerHTML = projectsSelectString
-            document.querySelectorAll('.projectName').forEach(p => p.addEventListener('click', a => {
-                console.log(a.target.id)
-                console.log(projects[a.target.id.split('project-')[1]])
-                projectVersion.innerHTML = `
-                    ${projects[a.target.id.split('project-')[1]]['versions'].reverse().map(versionString => `<option value="${versionString}">${versionString}</option>`.split(',').join('')).join('')}
-                `
-                localStorage.setItem('projectName', a.target.firstElementChild.innerText)
-            }))
-            // document.querySelectorAll('.componentName').forEach(p => p.addEventListener('click', a => {
-            //     console.log(a.target.innerText)
-            //     hitGetFileContent(a.target.innerText)
-            // }))
-        })
-        .catch(function(error) {
-            console.log("Error getting documents: ", error);
-        });
-    
-}
-
-let getComponentList = () => {
-    let project = projectNameSelection.value
-    localStorage.setItem("projectName", project);
-    let componentList = JSON.parse(localStorage.getItem('projectsData'))[project]['components']
-    let componentSelectString = `
-        ${componentList.map(componentFile => {
-            let component = componentFile.slice(0, -3)
-            return `<option class="componentOption" value=${component}>${component}</option>`}
-        )}
-    `
-    componentNameSelection.innerHTML = componentSelectString
-}
-
 let createProjectDocument = (projectName) => {
     db.collection("projects").doc(projectName).set({
         owner: auth.currentUser.uid,
@@ -164,6 +184,7 @@ let createProjectDocument = (projectName) => {
     })
     .then(function() {
         console.log(`Document written with ID: ${projectName}`);
+        fetchProjectsData()
     })
     .catch(function(error) {
         console.error("Error adding document: ", error);
@@ -207,8 +228,7 @@ let hitSaveFileToCDN = async () => {
             if (res.result == 'File already exists. Need to bump the version!') {
                 alert(`Your have a component of previous version registered already. Try bumping the version!`)
             } else {
-                cdnLink.innerHTML = `<a href=${res.cdn_url}>${res.cdn_url}</a>`
-                cdnLink.hidden = false
+                cdnLink.innerHTML = res.cdn_url
                 alert(`Your file is uploaded to CDN, add the following in <head> tag:\n\n<script src='${res.cdn_url}' type='module'></script>`)
                 window.location.reload()
             }
@@ -288,10 +308,56 @@ let hitGetFileContent = async () => {
         })
 }
 
-projectNameSelection.onchange = getComponentList
-componentNameSelection.onchange = hitGetFileContent
-componentNameSelection.onclick = hitGetFileContent
-publishButton.addEventListener('click', hitSaveFileToCDN)
+let handleProjectSelection = (a) => {
+    localStorage.setItem("projectName", a.target.value)
+    getVersionList()
+    getComponentList()
+    if (componentNameSelection.value != "") {
+        cdnLink.innerHTML = constructCDNLink()
+    }
+}
+
+let handleComponentSelection = (a) => {
+    localStorage.setItem("componentName", a.target.value)
+    hitGetFileContent()
+    cdnLink.innerHTML = constructCDNLink()
+}
+
+const copyToClipboard = str => {
+    // https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f
+    const el = document.createElement('textarea');
+    el.value = str;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+  };
+
+let handleCopyLink = () => {
+    if (componentNameSelection.value != "") {
+        copyToClipboard(constructCDNLink())
+    } else {
+        alert("Component name is not defined!")
+    }
+}
+
+let handleNewComponentButtonClick = () => {
+    let newComponentName = prompt("Enter component name:")
+    localStorage.setItem("componentName", newComponentName)
+    componentNameSelection.innerHTML += `<option class="componentOption" value=${newComponentName}>${newComponentName}</option>`
+    componentNameSelection.value = newComponentName
+    myCodeMirror.setValue(PLACEHOLDERS.CODE)
+}
+
+projectNameSelection.onchange = handleProjectSelection
+componentNameSelection.onchange = handleComponentSelection
+publishButton.onclick = hitSaveFileToCDN
+newProjectButton.onclick = hitCreateProject
+newComponentButton.onclick = handleNewComponentButtonClick
+copyLinkButton.onclick = handleCopyLink
 
 
 // Authentication Flow
@@ -345,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 loginWithGithubButton.removeEventListener('click', loginWithGithub)
                 username = localStorage.getItem('username')
 
-                getProjectList()
+                fetchProjectsData()
             } else {
                 console.log("User not logged in")
                 loginWithGithubButton.innerText = "Login with Github"

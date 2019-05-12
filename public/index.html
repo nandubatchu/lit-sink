@@ -32,17 +32,20 @@
                         <div id='componentInit'>
                             <select name="projectName" id="projectName">
                             </select>
-                            <select name="projectVersion" id="projectVersion">
+                            <select name="projectVersion" id="projectVersion" disabled>
                                 <option value="0.0.0">0.0.0</option>
                             </select>
                             <select name="componentName" id="componentName">
                             </select>
                             <button id='publish'>Publish</button><br>
                             <!-- <input id="componentName" value="test-element"> -->
-                            <br><br>
-                            <textarea name="componentInitText" id="componentInitText" cols="60" rows="5"></textarea>
+                            <br>
+                            <button id='newProject'>New Project</button>
+                            <button id='newComponent'>New Component</button><br><br>
+                            <textarea name="componentInitText" id="componentInitText" cols="60" rows="3"></textarea><br>
                             <button id='refreshElement'>Refresh Changes</button>
-                            <pre id="cdnLink" hidden></pre>
+                            <button id='copyLink'>Copy CDN Link</button><br>
+                            <textarea id="cdnLink" hidden></textarea>
                         </div>
                     </div>
                     <div id='componentView'></div>
