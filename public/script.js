@@ -35,7 +35,7 @@ class PinkButtonElement extends LitElement {
             </style>
             
             <button @click=\${() => {console.log("You clicked on the pink button!")}}>
-                <slot></slot>
+                <slot>Pink Button</slot>
             </button>
         \`;
     }  
@@ -112,14 +112,15 @@ let constructCDNLink = () => {
     return cdn_url
 }
 
+let get_data = () => {
+    getProjectList()
+    getVersionList()
+    getComponentList()
+}
 
 // Initialising the placeholders
 old_session_code = localStorage.getItem("code") ? localStorage.getItem("code") : PLACEHOLDERS.CODE
 componentInitText.value = localStorage.getItem('componentInitText') ? localStorage.getItem("componentInitText") : PLACEHOLDERS.COMPONENT_INIT_TEXT
-getProjectList()
-getVersionList()
-getComponentList()
-
 
 var myCodeMirror = CodeMirror(document.getElementById("code"), {
     size: 100,
@@ -411,6 +412,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 username = localStorage.getItem('username')
 
                 fetchProjectsData()
+                get_data()
             } else {
                 console.log("User not logged in")
                 loginWithGithubButton.innerText = "Login with Github"
